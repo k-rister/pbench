@@ -71,9 +71,10 @@ tool_label_pattern="$benchmark_name-"
 install_only="n"
 one_shot="n"
 accept_negative_loss="n"
+minimum_rate=""
 
 # Process options and arguments
-opts=$(getopt -q -o i:c:t:r:m:p:M:S:C:o --longoptions "portlist:,rate:,rates:,max-drop-pct:,max-drop-pcts:,client-label:,server-label:,tool-label-pattern:,install,start-iteration-num:,config:,nr-flows:,test-type:,traffic:,latency-runtime:,search-runtime:,validation-runtime:,frame-sizes:,samples:,client:,clients:,servers:,server:,max-stddev:,max-failures:,log-response-times:,postprocess-only:,run-dir:,tool-group:,one-shot,accept-negative-loss,mpps-per-queue:,queues-per-task:,dst-macs:" -n "getopt.sh" -- "$@")
+opts=$(getopt -q -o i:c:t:r:m:p:M:S:C:o --longoptions "portlist:,rate:,rates:,max-drop-pct:,max-drop-pcts:,client-label:,server-label:,tool-label-pattern:,install,start-iteration-num:,config:,nr-flows:,test-type:,traffic:,latency-runtime:,search-runtime:,validation-runtime:,frame-sizes:,samples:,client:,clients:,servers:,server:,max-stddev:,max-failures:,log-response-times:,postprocess-only:,run-dir:,tool-group:,one-shot,accept-negative-loss,min-rate:,mpps-per-queue:,queues-per-task:,dst-macs:" -n "getopt.sh" -- "$@")
 if [ $? -ne 0 ]; then
 	printf -- "$*\n"
 	printf "\n"
@@ -83,6 +84,7 @@ if [ $? -ne 0 ]; then
 	#              678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012
 	printf -- "\t\t-c str       --config=str               name of the test config (i.e. jumbo_frames_and_network_throughput)\n"
 	printf -- "\t\t-r float     --rate[s]	               list of rates in millions of packets/sec (multiple rates can be used for latency tests)\n"
+	printf -- "\t\t             --min-rate                 set the minimum rate to strive for (failing if unable to achieve it)\n"
 	printf -- "\t\t             --portlist=int,int[,int,int]  list of DPDK ports to use (multiples of 2)\n"
 	printf -- "\t\t-t str[,str] --test-type=str            throughput, latency, or throughput-latency (default $test_type)\n"
 	printf -- "\t\t					       throuhgput: find max throuhgput with a binary search\n"
@@ -272,6 +274,13 @@ while true; do
 		shift
 		accept_negative_loss="y"
 		;;
+		--min-rate)
+		shift
+		if [ -n "$1" ]; then
+		    minimum_rate=$1
+		    shift
+		fi
+		;;
 		--)
 		shift
 		break
@@ -376,6 +385,9 @@ for rate in `echo $rates | sed -e s/,/" "/g`; do
 								echo "VSPERF {" >$cfg_file
 								if [ "$rate" != "none" ]; then
         								echo "startRate = $rate," >>$cfg_file
+								fi
+								if [ -n "$minimum_rate" ]; then
+									echo "minRate = $minimum_rate," >>$cfg_file
 								fi
         							echo "nrFlows = $nr_flow," >>$cfg_file
         							echo "testType = \"$test_type\"," >>$cfg_file
