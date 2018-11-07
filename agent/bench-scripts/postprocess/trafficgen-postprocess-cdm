@@ -96,7 +96,6 @@ my @trial_stats_device_metrics = (
 
     );
 
-
 # retrieve CDM sample information
 my $json_ref = get_json_file("sample.json");
 my %bench_iter_sample = %$json_ref;
@@ -136,37 +135,37 @@ for my $client_hostname (@client_hostname_dirs) {
 	    my %bench_iter_sample_period = create_bench_iter_sample_period_doc(\%bench_iter_sample, $period_name, $prev_period_id);
 	    $prev_period_id = $bench_iter_sample_period{'period'}{'id'};
 
+	    for my $trial_metric ( @trial_metrics ) {
+		my %metric_sample = create_metric_sample_doc(\%bench_iter_sample_period,
+							     $$trial_metric{'class'},
+							     $$trial_metric{'type'},
+							     $client_hostname,
+							     "trafficgen",
+							     "%source%_%hostname%_%type%" . $$trial_metric{'name_format'},
+							     $trial{$$trial_metric{'key'}},
+							     $trial{'stats'}{'trial_stop'});
+		$metric_sample{'metric'}{'begin'} = $trial{'stats'}{'trial_start'};
+
+		put_json_file(\%metric_sample, "../../es/metrics/" . $client_hostname . "/metric-" .
+			      $metric_sample{'metric'}{'id'} . ".json");
+	    }
+
+	    for my $trial_stats_metric ( @trial_stats_metrics ) {
+		my %metric_sample = create_metric_sample_doc(\%bench_iter_sample_period,
+							     $$trial_stats_metric{'class'},
+							     $$trial_stats_metric{'type'},
+							     $client_hostname,
+							     "trafficgen",
+							     "%source%_%hostname%_%type%" . $$trial_stats_metric{'name_format'},
+							     $trial{'stats'}{$$trial_stats_metric{'key'}}{$$trial_stats_metric{'field'}},
+							     $trial{'stats'}{'trial_stop'});
+		$metric_sample{'metric'}{'begin'} = $trial{'stats'}{'trial_start'};
+
+		put_json_file(\%metric_sample, "../../es/metrics/" . $client_hostname . "/metric-" .
+			      $metric_sample{'metric'}{'id'} . ".json");
+	    }
+
 	    foreach my $dev_pair ( @{ $trial{'trial_params'}{'test_dev_pairs'} } ) {
-		for my $trial_metric ( @trial_metrics ) {
-		    my %metric_sample = create_metric_sample_doc(\%bench_iter_sample_period,
-								 $$trial_metric{'class'},
-								 $$trial_metric{'type'},
-								 $client_hostname,
-								 "trafficgen",
-								 "%source%_%hostname%_%type%" . $$trial_metric{'name_format'},
-								 $trial{$$trial_metric{'key'}},
-								 $trial{'stats'}{'trial_stop'});
-		    $metric_sample{'metric'}{'begin'} = $trial{'stats'}{'trial_start'};
-
-		    put_json_file(\%metric_sample, "../../es/metrics/" . $client_hostname . "/metric-" .
-				  $metric_sample{'metric'}{'id'} . ".json");
-		}
-
-		for my $trial_stats_metric ( @trial_stats_metrics ) {
-		    my %metric_sample = create_metric_sample_doc(\%bench_iter_sample_period,
-								 $$trial_stats_metric{'class'},
-								 $$trial_stats_metric{'type'},
-								 $client_hostname,
-								 "trafficgen",
-								 "%source%_%hostname%_%type%" . $$trial_stats_metric{'name_format'},
-								 $trial{'stats'}{$$trial_stats_metric{'key'}}{$$trial_stats_metric{'field'}},
-								 $trial{'stats'}{'trial_stop'});
-		    $metric_sample{'metric'}{'begin'} = $trial{'stats'}{'trial_start'};
-
-		    put_json_file(\%metric_sample, "../../es/metrics/" . $client_hostname . "/metric-" .
-				  $metric_sample{'metric'}{'id'} . ".json");
-		}
-
 		for my $trial_stats_device_metric ( @trial_stats_device_metrics ) {
 		    my %metric_sample = create_metric_sample_doc(\%bench_iter_sample_period,
 								 $$trial_stats_device_metric{'class'},
