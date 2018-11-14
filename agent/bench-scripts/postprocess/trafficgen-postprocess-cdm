@@ -23,10 +23,12 @@ my $rundir = shift(@ARGV);
 my $base_bench_dir = shift(@ARGV);
 
 my @trial_metrics = (
-    { 'key' => 'result',
+    { 'key' => 'flubberbubbles',
       'class' => 'pass/fail',
       'type' => 'trial-result',
-      'name_format' => '' }
+      'name_format' => '',
+      'altkey' => 'result',
+      'altvalue' => 'status' }
 
     );
 
@@ -391,15 +393,26 @@ for my $client_hostname (@client_hostname_dirs) {
 	    $prev_period_id = $bench_iter_sample_period{'period'}{'id'};
 
 	    for my $trial_metric ( @trial_metrics ) {
+		my $metric_value;
+		if (exists($trial{$$trial_metric{'key'}})) {
+		    $metric_value = $trial{$$trial_metric{'key'}};
+		} else {
+		    $metric_value = 0.0;
+		}
+
 		my %metric_sample = create_metric_sample_doc(\%bench_iter_sample_period,
 							     $$trial_metric{'class'},
 							     $$trial_metric{'type'},
 							     $client_hostname,
 							     "trafficgen",
 							     "%source%_%hostname%_%type%" . $$trial_metric{'name_format'},
-							     $trial{$$trial_metric{'key'}},
+							     $metric_value,
 							     $trial{'stats'}{'trial_stop'});
 		$metric_sample{'metric'}{'begin'} = $trial{'stats'}{'trial_start'};
+
+		if (exists($$trial_metric{'altvalue'}) && exists($$trial_metric{'altkey'})) {
+		    $metric_sample{'metric'}{$$trial_metric{'altvalue'}} = $trial{$$trial_metric{'altkey'}};
+		}
 
 		put_json_file(\%metric_sample, "../../es/metrics/" . $client_hostname . "/metric-" .
 			      $metric_sample{'metric'}{'id'} . ".json");
