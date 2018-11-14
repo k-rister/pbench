@@ -236,9 +236,9 @@ my @trial_profiler_metrics = (
       'subkey' => 'tx',
       'field' => 'bps',
       'class' => 'throughput',
-      'type' => 'average-rx-l2-throughput-in-bps',
-      'name_format' => '',
-      'extra_field' => '',
+      'type' => 'average-tx-l2-throughput-in-bps',
+      'name_format' => '_%tx_port%',
+      'extra_field' => 'tx_port',
       'cumulative' => 0 },
 
     { 'key' => 'ports',
