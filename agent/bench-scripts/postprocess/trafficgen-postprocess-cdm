@@ -381,8 +381,8 @@ for my $client_hostname (@client_hostname_dirs) {
 	    $trial{'stats'}{'trial_start'} *= 1000;
 	    $trial{'stats'}{'trial_stop'} *= 1000;
 
-	    printf "TRIAL COUNTER: %d\n", $trial{'trial'};
-	    print Dumper \%trial;
+	    printf "Processing new period: Trial %d\n", $trial{'trial'};
+	    #print Dumper \%trial;
 
 	    my $period_name = "trial-" . $trial{'trial'};
 	    if ($index == (scalar(@{ $$bs_json_ref{'trials'} }) - 1)) {
@@ -455,6 +455,8 @@ for my $client_hostname (@client_hostname_dirs) {
 	    }
 
 	    if (exists($trial{'profiler-data'}) && defined($trial{'profiler-data'})) {
+		print "\tFound profiler data\n";
+
 		my %trex_ports;
 		my %trex_pgids;
 
