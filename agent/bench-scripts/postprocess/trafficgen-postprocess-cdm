@@ -377,10 +377,6 @@ for my $client_hostname (@client_hostname_dirs) {
 	for (my $index=0; $index<scalar(@{ $$bs_json_ref{'trials'} }); $index++) {
 	    my %trial = %{ $$bs_json_ref{'trials'}[$index] };
 
-	    # convert timestamps from seconds to milliseconds
-	    $trial{'stats'}{'trial_start'} *= 1000;
-	    $trial{'stats'}{'trial_stop'} *= 1000;
-
 	    printf "Processing new period: Trial %d\n", $trial{'trial'};
 	    #print Dumper \%trial;
 
@@ -482,8 +478,8 @@ for my $client_hostname (@client_hostname_dirs) {
 								 $client_hostname,
 								 'trafficgen',
 								 '%source%_%hostname%_%type%',
-								 $timestamp*1000);
-		    $metric_sample{'metric'}{'begin'} = $last_timestamp*1000;
+								 $timestamp);
+		    $metric_sample{'metric'}{'begin'} = $last_timestamp;
 		    put_json_file(\%metric_sample, "../../es/metrics/" . $client_hostname . "/metric-" .
 				  $metric_sample{'metric'}{'id'} . ".json");
 
@@ -503,8 +499,8 @@ for my $client_hostname (@client_hostname_dirs) {
 									 'trafficgen',
 									 '%source%_%hostname%_%type%' . $$trial_profiler_metric{'name_format'},
 									 $value,
-									 $timestamp*1000);
-			    $metric_sample{'metric'}{'begin'} = $last_timestamp*1000;
+									 $timestamp);
+			    $metric_sample{'metric'}{'begin'} = $last_timestamp;
 			    put_json_file(\%metric_sample, "../../es/metrics/" . $client_hostname . "/metric-" .
 					  $metric_sample{'metric'}{'id'} . ".json");
 			} elsif ($$trial_profiler_metric{'key'} eq 'ports') {
@@ -523,8 +519,8 @@ for my $client_hostname (@client_hostname_dirs) {
 									     'trafficgen',
 									     '%source%_%hostname%_%type%' . $$trial_profiler_metric{'name_format'},
 									     $value,
-									     $timestamp*1000);
-				$metric_sample{'metric'}{'begin'} = $last_timestamp*1000;
+									     $timestamp);
+				$metric_sample{'metric'}{'begin'} = $last_timestamp;
 				$metric_sample{'metric'}{$$trial_profiler_metric{'extra_field'}} = $port;
 				put_json_file(\%metric_sample, "../../es/metrics/" . $client_hostname . "/metric-" .
 					      $metric_sample{'metric'}{'id'} . ".json");
@@ -547,8 +543,8 @@ for my $client_hostname (@client_hostname_dirs) {
 										 'trafficgen',
 										 '%source%_%hostname%_%type%' . $$trial_profiler_metric{'name_format'},
 										 $value,
-										 $timestamp*1000);
-				    $metric_sample{'metric'}{'begin'} = $last_timestamp*1000;
+										 $timestamp);
+				    $metric_sample{'metric'}{'begin'} = $last_timestamp;
 				    $metric_sample{'metric'}{$$trial_profiler_metric{'extra_field'}} = $pgid;
 				    put_json_file(\%metric_sample, "../../es/metrics/" . $client_hostname . "/metric-" .
 						  $metric_sample{'metric'}{'id'} . ".json");
@@ -569,8 +565,8 @@ for my $client_hostname (@client_hostname_dirs) {
 										     'trafficgen',
 										     '%source%_%hostname%_%type%' . $$trial_profiler_metric{'name_format'},
 										     $value,
-										     $timestamp*1000);
-					$metric_sample{'metric'}{'begin'} = $last_timestamp*1000;
+										     $timestamp);
+					$metric_sample{'metric'}{'begin'} = $last_timestamp;
 					$metric_sample{'metric'}{$$trial_profiler_metric{'field'}} = $pgid;
 					$metric_sample{'metric'}{$$trial_profiler_metric{'extra_field'}} = $port;
 					put_json_file(\%metric_sample, "../../es/metrics/" . $client_hostname . "/metric-" .
