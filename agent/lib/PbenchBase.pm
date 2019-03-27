@@ -13,61 +13,59 @@ use List::Util qw(max);
 use JSON;
 
 our @EXPORT_OK = qw(get_json_file put_json_file get_benchmark_names get_clients get_pbench_run_dir
-                    get_pbench_install_dir get_pbench_config_dir get_pbench_bench_config_dir
+		            get_pbench_install_dir get_pbench_config_dir get_pbench_bench_config_dir
                     get_benchmark_results_dir get_params remove_params remove_element get_hostname
-                    get_pbench_datetime load_benchmark_config metadata_log_begin_run
-                    metadata_log_end_run metadata_log_record_iteration);
-
+                    get_pbench_datetime load_benchmark_config);
 my $script = "PbenchBase.pm";
 
 sub get_hostname {
-    my $hostname = `hostname -s`;
-    chomp $hostname;
-    return $hostname;
+	my $hostname = `hostname -s`;
+	chomp $hostname;
+	return $hostname;
 }
 
 sub get_pbench_run_dir {
-    my $dir = `getconf.py pbench_run pbench-agent`; # typically /var/lib/pbench-agent
-    chomp $dir;
-    return $dir;
+	my $dir = `getconf.py pbench_run pbench-agent`; # typically /var/lib/pbench-agent
+	chomp $dir;
+	return $dir;
 }
 
 sub get_pbench_install_dir {
-    my $dir = `getconf.py install-dir pbench-agent`; # typically /var/lib/pbench-agent
-    chomp $dir;
-    return $dir;
+	my $dir = `getconf.py install-dir pbench-agent`; # typically /var/lib/pbench-agent
+	chomp $dir;
+	return $dir;
 }
 
 sub get_pbench_config_dir {
-    return get_pbench_install_dir() . "/config";
+	return get_pbench_install_dir() . "/config";
 }
 
 sub get_pbench_bench_config_dir {
-    return get_pbench_install_dir() . "/config/benchmark";
+	return get_pbench_install_dir() . "/config/benchmark";
 }
 
 # Process @ARGV-like array and return a hash with key=argument and value=value
 sub get_params {
-    my %params;
-    for my $param (@_) {
-        if ($param =~ /--(\S+)=(.+)/) {
-            $params{$1} = $2;
-        }
-    }
-    return %params;
+	my %params;
+	for my $param (@_) {
+		if ($param =~ /--(\S+)=(.+)/) {
+			$params{$1} = $2;
+		}
+	}
+	return %params;
 }
 
 sub remove_element { # remove first occurrance of value in array
-    my $argv_ref = shift; # array to remove element from
-    my $val = shift; # the value to search for and remove
-    my $index = 0;
-    for my $array_val (@{ $argv_ref }) {
-        if ($array_val eq $val) {
-            splice(@{ $argv_ref }, $index, 1);
-            last;
-        }
-        $index++;
-    }
+	my $argv_ref = shift; # array to remove element from
+	my $val = shift; # the value to search for and remove
+	my $index = 0;
+	for my $array_val (@{ $argv_ref }) {
+		if ($array_val eq $val) {
+			splice(@{ $argv_ref }, $index, 1);
+			last;
+		}
+		$index++;
+	}
 }
 
 sub remove_params { # remove any parameters with "arg"
@@ -117,91 +115,50 @@ sub put_json_file {
 # Find all the benchmarks in the pbench configuraton data
 # todo: return as an array instead of printing
 sub get_benchmark_names {
-    my $dir = shift;
-    my @benchmarks;
-    opendir(my $dh, $dir) || die("Could not open directory $dir: $!\n");
-    my @entries = readdir($dh);
-    for my $entry (grep(!/pbench/, @entries)) {
-        if ($entry =~ /^(\w+)\.json$/) {
-            push(@benchmarks, $1);
-        }
-    }
-    return @benchmarks;
+	my $dir = shift;
+	my @benchmarks;
+	opendir(my $dh, $dir) || die("Could not open directory $dir: $!\n");
+	my @entries = readdir($dh);
+	for my $entry (grep(!/pbench/, @entries)) {
+		if ($entry =~ /^(\w+)\.json$/) {
+			push(@benchmarks, $1);
+		}
+	}
+	return @benchmarks;
 }
 
 # Scan the cmdline and return an array of client hostnames in --clients= if present
 sub get_clients {
-    my @clients;
-    for my $param (@_) {
-        if ($param =~ /\-\-clients\=(.+)/) {
-            @clients = split(/,/, $1);
-        }
-    }
-    return @clients;
+	my @clients;
+	for my $param (@_) {
+		if ($param =~ /\-\-clients\=(.+)/) {
+			@clients = split(/,/, $1);
+		}
+	}
+	return @clients;
 }
 
 sub get_pbench_datetime { #our common date & time forma
-    my $datetime = `date --utc +"%Y.%m.%dT%H.%M.%S"`;
-    chomp $datetime;
-    return $datetime;
+	my $datetime = `date --utc +"%Y.%m.%dT%H.%M.%S"`;
+	chomp $datetime;
+	return $datetime;
 }
 
 # Get a new benchmark directory -needed if you are going to run a benchmark
 sub get_benchmark_results_dir {
-    my $benchmark = shift;
-    my $config = shift;
-    my $basedir = get_pbench_run_dir();
-    my $datetime = get_pbench_datetime();
-    my $benchdir = $basedir . "/" . $benchmark . "_" . $config . "_" . $datetime;
+	my $benchmark = shift;
+	my $config = shift;
+	my $basedir = get_pbench_run_dir();
+	my $datetime = get_pbench_datetime();
+	my $benchdir = $basedir . "/" . $benchmark . "_" . $config . "_" . $datetime;
 }
 
 # Load a benchmark json file which tells us how to run a benchmark
 sub load_benchmark_config {
-    my $pbench_bench_config_dir = shift;
-    my $benchmark_name = shift;
-    my $benchmark_spec_file = $pbench_bench_config_dir . "/" .  $benchmark_name . ".json";
-    my $json_ref = get_json_file($benchmark_spec_file);
-    return %$json_ref
-}
-
-sub metadata_log_begin_run {
-    my $benchmark_run_dir = shift;
-    my $group = shift;
-    system("pbench-metadata-log --group=" . $group . " --dir=" . $benchmark_run_dir . " beg");
-}
-
-sub metadata_log_end_run {
-    my $benchmark_run_dir = shift;
-    my $last_iteration_num = shift;
-    my $benchmark_name = shift;
-    my $config = shift;
-    my $group = shift;
-    my $iteration_names = "";
-    my $mdlog = $benchmark_run_dir . "/metadata.log";
-    for (my $i=0; $i<=$last_iteration_num; $i++) {
-        $iteration_names = $iteration_names . ",iteration" . $i;
-    }
-    $iteration_names =~ s/^,//;
-    system("echo " . $iteration_names  . " | pbench-add-metalog-option " . $mdlog . " pbench iterations");
-    system("echo " . $config  . " | pbench-add-metalog-option " . $mdlog . " pbench config");
-    system("echo " . $benchmark_name  . " | pbench-add-metalog-option " . $mdlog . " pbench script");
-    system("pbench-metadata-log --group=" . $group . " --dir=" . $benchmark_run_dir . " end");
-}
-
-sub metadata_log_record_iteration {
-    my $benchmark_run_dir = shift;
-    my $num = shift;
-    my $iteration_params = shift;
-    my $iteration_name = "iteration" . $num;
-    my $mdlog = $benchmark_run_dir . "/metadata.log";
-    system("echo " . $num .      " | pbench-add-metalog-option " . $mdlog . " iterations/" . $iteration_name . " iteration_number");
-    system("echo " . $iteration_name  . " | pbench-add-metalog-option " . $mdlog . " iterations/" . $iteration_name . " iteration_name");
-    my @params = split(/\s+/, $iteration_params);
-    while (scalar @params > 0) {
-        my $param = shift @params;
-        if ($param =~ /\-\-(\S+)\=(\S+)/) {
-            system("echo " . $2 . " | pbench-add-metalog-option " . $mdlog . " iterations/" . $iteration_name . " " . $1);
-        }
-    }
+	my $pbench_bench_config_dir = shift;
+	my $benchmark_name = shift;
+	my $benchmark_spec_file = $pbench_bench_config_dir . "/" .  $benchmark_name . ".json";
+	my $json_ref = get_json_file($benchmark_spec_file);
+	return %$json_ref
 }
 1;

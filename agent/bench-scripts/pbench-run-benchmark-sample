@@ -64,14 +64,14 @@ $sample{'sample'}{'num'} = $sample_num;
 # build a hash of clients and servers to be used in almost all the steps bewlow
 my %hosts;
 for my $type ("client", "server") {
-    if (exists $iteration{'run'}{'bench'}{$type . 's'} and $iteration{'run'}{'bench'}{$type . 's'}) {
+    if ($iteration{'run'}{'bench'}{$type . 's'}) {
         my @hosts = split(/,/, $iteration{'run'}{'bench'}{$type . 's'});
         $hosts{$type} = \@hosts;
     }
 }
 
 # all benchmarks must use --clients with at least 1 host
-if (! exists $hosts{"client"}) {
+if (! $hosts{"client"}) {
     print "There are no clients, exiting\n";
     exit 1;
 }
@@ -105,7 +105,7 @@ if (! $pp_only) {
         }
     }
     # - run pre-script in controller
-    if (exists $specs{"controller"}{"pre-script"} and $specs{"controller"}{"pre-script"} ne "") {
+    if ($specs{"controller"}{"pre-script"} and $specs{"controller"}{"pre-script"} ne "") {
         # pre-script gets same params as benchmark.
         my $preprocess_cmd = $specs{"controller"}{"pre-script"} . " " . $iteration{'iteration'}{'params'};
         my $preprocess_output = `$preprocess_cmd`;
@@ -186,7 +186,7 @@ if (! $pp_only) {
 } # if (! $pp_only)
 
 # - post-process the result data on the controller
-if (exists $specs{"controller"}{"post-script"} and $specs{"controller"}{"post-script"} ne "") {
+if ($specs{"controller"}{"post-script"} and $specs{"controller"}{"post-script"} ne "") {
     # A couple of things about the benchmark post-procesing script:
     # (1) It is responsible for completing and writing the sample document and creating all period
     # and metric documents.  It requires a partially completed sample document, that is done below,
