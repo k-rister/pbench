@@ -10,7 +10,7 @@ use File::Basename;
 use Cwd 'abs_path';
 use Exporter qw(import);
 use List::Util qw(max);
-use JSON::XS;
+use JSON::MaybeXS;
 
 our @EXPORT_OK = qw(get_json_file put_json_file get_benchmark_names get_clients get_pbench_run_dir
                     get_pbench_install_dir get_pbench_config_dir get_pbench_bench_config_dir
