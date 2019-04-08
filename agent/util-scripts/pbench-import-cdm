@@ -12,7 +12,7 @@ BEGIN {
 	$pbench_lib_path .= "/lib";
 }
 use lib "$pbench_lib_path";
-use JSON::XS;
+use JSON::MaybeXS;
 use Data::Dumper;
 use PbenchCDM qw(get_cdm_ver get_cdm_rel);
 use PbenchBase qw(get_json_file put_json_file remove_element);
